@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Impedisce ai motori di ricerca di indicizzare il gioco -->
+    <meta name="robots" content="noindex, nofollow">
+    <title>Gioco di Ascolto Vocabolario Italiano</title>
+    <!-- Carica Font Awesome per l'icona dell'altoparlante -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Carica Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Stili personalizzati per l'estetica del gioco */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1f2937; /* Sfondo grigio scuro */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .game-container {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            max-width: 600px;
+            width: 100%;
+            border: 4px solid #3b82f6; /* Bordo blu */
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Predefinito: 1 colonna per mobile */
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        /* Desktop/Tablet: Griglia quando lo schermo è più largo */
+        @media (min-width: 640px) {
+            .category-grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            }
+        }
+
+        .game-button {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            text-transform: uppercase;
+            box-shadow: 0 4px #1e40af;
+        }
+        .game-button:active { 
+            box-shadow: 0 0; 
+            transform: translateY(4px); 
+        }
+
+        /* --- PULSANTE AVANTI STILIZZATO (A FORMA DI FRECCIA) --- */
+        .next-btn-styled {
+            background-color: #6366f1 !important; /* Indigo-500 */
+            color: white !important;
+            padding-right: 2rem !important;
+            padding-left: 1rem !important;
+            clip-path: polygon(0% 0%, 85% 0%, 100% 50%, 85% 100%, 0% 100%);
+            box-shadow: none !important;
+            border-left: 6px solid #4338ca;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: auto !important;
+            margin: 1rem auto 0 !important;
+        }
+        .next-btn-styled:active {
+            transform: translateX(4px);
+        }
+
+        /* --- COLORI PULSANTI LIVELLO --- */
+        .game-button.default {
+            background-color: #38bdf8; /* Azzurro */
+            color: white;
+            box-shadow: 0 4px #0284c7;
+        }
+        .game-button.default:hover { background-color: #0ea5e9; } 
+
+        .game-button.unlocked {
+            background-color: #1e3a8a; /* Blu scuro */
+            color: white;
+            box-shadow: 0 4px #1e3a8a; 
+        }
+        .game-button.unlocked:hover { background-color: #172554; }
+
+        .game-button.mastered {
+            background-color: #047857; /* Verde scuro */
+            color: white;
+            box-shadow: 0 4px #047857; 
+        }
+        .game-button.mastered:hover { background-color: #047857; }
+
+        .game-button.mastered-final {
+            background-color: #f97316; /* Arancione */
+            color: white;
+            box-shadow: 0 4px #c2410c; 
+        }
+        .game-button.mastered-final:hover { background-color: #ea580c; }
+        
+        /* --- STILI TITOLO LIVELLO --- */
+        .level-title-container {
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            color: white;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+
+        #current-theme-title-1 { background-color: #38bdf8; }
+        #current-theme-title-2 { background-color: #1e3a8a; }
+        #current-theme-title-3, #current-theme-title-mastered { background-color: #047857; }
+        
+        /* Pulsante TTS */
+        .tts-button {
+            padding: 1rem;
+            background-color: #10b981; /* Smeraldo */
+            color: white;
+            border-radius: 9999px;
+            width: 80px;
+            height: 80px;
+            box-shadow: 0 6px #059669;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .tts-button:active {
+            box-shadow: 0 0 #059669;
+            transform: translateY(6px);
+        }
+        
+        #tts-icon {
+            font-size: 2.5rem;
+            line-height: 1; 
+            display: block;
+        }
+
+        /* Pulsante Microfono */
+        #mic-btn-3 {
+            background-color: #ef4444; /* Rosso */
+            box-shadow: 0 6px #b91c1c;
+        }
+        #mic-btn-3.recording {
+            background-color: #f59e0b; /* Ambra */
+            box-shadow: 0 6px #d97706;
+        }
+
+        /* Stili Immagini */
+        .image-option, #target-image-2, #target-image-3 {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: contain;
+            border: 4px solid #e5e7eb;
+            border-radius: 0.75rem;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .image-option { cursor: pointer; }
+        #target-image-2, #target-image-3 { cursor: initial; }
+        
+        .image-option.correct {
+            border-color: #10b981; 
+            border-width: 6px;
+            box-shadow: 0 0 20px #10b981;
+        }
+        .image-option.incorrect {
+            border-color: #ef4444; 
+            border-width: 6px;
+            box-shadow: 0 0 10px #ef4444;
+        }
+
+        .level2-play-btn {
+            background-color: #4f46e5;
+            color: white;
+            box-shadow: 0 4px #3730a3;
+            height: 48px;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .level2-play-btn .fas { font-size: 1.5rem; }
+        
+        .level2-select-btn {
+            background-color: #f59e0b;
+            color: white;
+            box-shadow: 0 4px #b45309;
+            height: 48px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .level2-select-btn.correct {
+            background-color: #10b981 !important;
+            box-shadow: 0 4px #059669;
+        }
+        .level2-select-btn.incorrect {
+            background-color: #ef4444 !important;
+            box-shadow: 0 4px #b91c1c;
+        }
+
+        #tts-hint-btn-3 {
+            background-color: #4f46e5;
+            box-shadow: 0 6px #3730a3;
+        }
+        
+        .feedback-button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .feedback-button-container .game-button {
+            width: 100%;
+            margin: 0;
+        }
+        
+        #skip-level3-btn { color: white; }
+
+        /* --- BARRA DI PROGRESSO --- */
+        .progress-scale-container {
+            flex-grow: 1;
+            margin-left: 0.75rem;
+            background-color: #e5e7eb;
+            height: 0.6rem;
+            border-radius: 9999px;
+            overflow: hidden;
+            position: relative;
+            min-width: 60px;
+            max-width: 120px;
+            border: 1px solid #d1d5db;
+        }
+        #progress-scale-fill {
+            height: 100%;
+            background-color: #10b981;
+            transition: width 0.5s ease-out;
+            width: 0%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <header class="text-center pb-4 mb-4 border-b-2 border-gray-100">
+        <h1 id="main-title" class="text-3xl font-extrabold text-gray-800">Impariamo l'italiano</h1>
+
+        <div class="mt-3 flex justify-between items-center px-2">
+            <div class="flex items-center flex-1">
+                <span class="text-base sm:text-lg font-bold text-gray-700 whitespace-nowrap">Punteggio: <span id="score">0.0</span></span>
+                <div class="progress-scale-container" id="score-scale-box">
+                    <div id="progress-scale-fill"></div>
+                </div>
+            </div>
+            <button id="back-to-home-btn" class="text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-semibold hidden ml-2">← Temi</button>
+        </div>
+    </header>
+
+    <!-- CONTENITORE VISTE PRINCIPALI -->
+    <div id="game-screens">
+        
+        <!-- 1. HOME SCREEN (SELEZIONE CATEGORIA) -->
+        <div id="home-screen" class="p-4">
+            <div id="category-list" class="category-grid"></div>
+        </div>
+
+        <!-- 2. LIVELLO 1 (Audio -> Immagine) -->
+        <div id="level1-screen" class="hidden text-center p-4">
+            <h2 id="current-theme-title-1" class="font-bold level-title-container">Caricamento...</h2>
+
+            <p class="text-lg font-semibold text-gray-600 mb-6">
+                Domanda <span id="current-question-count-1">0</span> / <span id="total-question-count-1">0</span>
+            </p>
+
+            <button id="tts-btn-1" class="tts-button">
+                <span id="tts-icon-1">
+                    <i class="fas fa-volume-up"></i>
+                </span>
+            </button>
+            <p id="l1-instruction" class="text-lg font-semibold text-gray-600 mb-6">Tocca per ascoltare la parola!</p>
+
+            <div id="image-options-container" class="grid grid-cols-3 gap-4"></div>
+
+            <div id="feedback-area-1" class="mt-6 min-h-12">
+                <p id="feedback-text-1" class="text-lg font-bold"></p>
+                 <div class="feedback-button-container">
+                    <button id="next-level1-btn" class="game-button next-btn-styled hidden">
+                        PROSSIMA PAROLA <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 3. LIVELLO 2 (Immagine -> Audio) -->
+        <div id="level2-screen" class="hidden text-center p-4">
+            <h2 id="current-theme-title-2" class="font-bold level-title-container">Caricamento...</h2>
+            
+            <p class="text-lg font-semibold text-gray-600 mb-6">
+                Domanda <span id="current-question-count-2">0</span> / <span id="total-question-count-2">0</span>
+            </p>
+
+            <div class="h-48 flex justify-center items-center mb-6">
+                <img id="target-image-2" class="max-h-full max-w-full rounded-lg shadow-xl border-4 border-gray-200" src="" alt="Immagine Obiettivo">
+            </div>
+
+            <p id="l2-instruction" class="text-lg font-semibold text-gray-600 mb-6">Ascolta e seleziona la parola corrispondente</p>
+
+            <div id="audio-options-container" class="grid grid-cols-3 gap-4">
+                <div class="flex flex-col gap-2">
+                    <button class="level2-play-btn game-button"><i class="fas fa-volume-up"></i></button>
+                    <button class="level2-select-btn game-button"><i class="fas fa-check-square"></i></button>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <button class="level2-play-btn game-button"><i class="fas fa-volume-up"></i></button>
+                    <button class="level2-select-btn game-button"><i class="fas fa-check-square"></i></button>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <button class="level2-play-btn game-button"><i class="fas fa-volume-up"></i></button>
+                    <button class="level2-select-btn game-button"><i class="fas fa-check-square"></i></button>
+                </div>
+            </div>
+
+            <div id="feedback-area-2" class="mt-6 min-h-12">
+                <p id="feedback-text-2" class="text-lg font-bold"></p>
+                <div class="feedback-button-container">
+                    <button id="next-level2-btn" class="game-button next-btn-styled hidden">
+                        PROSSIMA PAROLA <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. LIVELLO 3 (Pronuncia) -->
+        <div id="level3-screen" class="text-center p-4 hidden">
+            <h2 id="current-theme-title-3" class="font-bold level-title-container">Caricamento...</h2>
+            <p class="text-lg font-semibold text-gray-600 mb-6">
+                Domanda <span id="current-question-count-3">0</span> / <span id="total-question-count-3">0</span>
+            </p>
+
+            <div class="h-48 flex justify-center items-center mb-6">
+                <img id="target-image-3" class="max-h-full max-w-full rounded-lg shadow-xl border-4 border-gray-200" src="" alt="Immagine Obiettivo">
+            </div>
+
+            <p id="l3-instruction" class="text-lg font-semibold text-gray-600 mb-6">Pronuncia la parola corrispondente all'immagine:</p>
+
+            <div class="flex justify-center items-center space-x-6">
+                <button id="mic-btn-3" class="tts-button">
+                    <span id="mic-icon-3"><i class="fas fa-microphone"></i></span>
+                </button>
+                <button id="tts-hint-btn-3" class="tts-button !bg-indigo-500">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+            </div>
+
+            <p id="recognition-status" class="text-sm text-gray-500 mt-2 min-h-6">Pronuncia la parola che vedi.</p>
+
+            <div id="feedback-area-3" class="mt-6 min-h-12">
+                <p id="feedback-text-3" class="text-lg font-bold"></p>
+                <div class="feedback-button-container">
+                    <button id="skip-level3-btn" class="game-button bg-red-500 hover:bg-red-600 active:bg-red-700 hidden">SALTA PAROLA</button>
+                    <button id="next-level3-btn" class="game-button next-btn-styled hidden">
+                        PROSSIMA PAROLA <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 5. SCHERMATA LIVELLO COMPLETATO -->
+        <div id="level-complete-screen" class="text-center p-4 hidden">
+            <h2 class="text-3xl font-bold text-green-600 mb-4">LIVELLO COMPLETATO!</h2>
+            <p class="text-xl text-gray-700 mb-6">Hai completato con successo <span id="completed-theme"></span>!</p>
+            <p class="text-lg text-gray-600 mb-8">Punteggio ottenuto: <span id="theme-score" class="font-bold text-purple-600">0.0</span></p>
+            <button class="game-button default w-full mb-3" onclick="App.showHomeScreen()">TORNA AI TEMI</button>
+            <p class="text-sm text-gray-500 mt-4"><span id="next-level-message"></span></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const PROGRESS_KEY = 'vocab_game_progress_it'; 
+
+    // --- SETUP RICONOSCIMENTO VOCALE ---
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.lang = 'it-IT'; // Cambiato in Italiano
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1; 
+    }
+
+    const BASE_IMAGE_URL = "https://regine-lambrecht.github.io/ingles_Mikael/images/";
+    
+    // Traduzione di tutti i dettagli delle parole e categorie
+    const WORD_DATA_DETAILS = {
+        "Animali": [
+            { word: "Uccello", original: "Bird", ext: ".png" }, { word: "Gatto", original: "Cat", ext: ".png" }, { word: "Pollo", original: "Chicken", ext: ".png" },
+            { word: "Mucca", original: "Cow", ext: ".png" }, { word: "Cane", original: "Dog", ext: ".jpg" },
+            { word: "Anatra", original: "Duck", ext: ".jpg" }, { word: "Elefante", original: "Elephant", ext: ".jpg" }, { word: "Pesce", original: "Fish", ext: ".png" }, { word: "Rana", original: "Frog", ext: ".jpg" },
+            { word: "Cavallo", original: "Horse", ext: ".jpg" }, { word: "Leone", original: "Lion", ext: ".jpg" }, { word: "Scimmia", original: "Monkey", ext: ".jpg" },
+            { word: "Maiale", original: "Pig", ext: ".jpg" }, { word: "Coniglio", original: "Rabbit", ext: ".jpg" }, { word: "Serpente", original: "Snake", ext: ".jpg" },
+            { word: "Tartaruga", original: "Turtle", ext: ".jpg" }
+        ],
+        "Corpo": [
+            { word: "Petto", original: "Chest", ext: ".png" }, { word: "Orecchio", original: "Ear", ext: ".png" }, { word: "Occhio", original: "Eye", ext: ".png" },
+            { word: "Piede", original: "Foot", ext: ".png" }, { word: "Capelli", original: "Hair", ext: ".png" }, { word: "Mano", original: "Hand", ext: ".png" },
+            { word: "Ginocchio", original: "Knee", ext: ".png" }, { word: "Bocca", original: "Mouth", ext: ".png" }, { word: "Collo", original: "Neck", ext: ".png" },
+            { word: "Naso", original: "Nose", ext: ".png" }
+        ],
+        "Vestiti": [
+            { word: "Cappello", original: "Hat", ext: ".jpg" }, { word: "Scarpe", original: "Shoes", ext: ".png" }, { word: "Maglietta", original: "T-shirt", ext: ".png" },
+            { word: "Cintura", original: "Belt", ext: ".png" }, { word: "Boxer", original: "Boxer", ext: ".png" }, { word: "Berretto", original: "Cap", ext: ".png" },
+            { word: "Giacca", original: "Jacket", ext: ".png" }, { word: "Pantaloni", original: "Pants", ext: ".png" }, { word: "Pigiama", original: "Pijama", ext: ".png" },
+            { word: "Pantaloncini", original: "Shorts", ext: ".png" }, { word: "Gonna", original: "Skirt", ext: ".png" }, { word: "Calze", original: "Socks", ext: ".png" },
+            { word: "Maglione", original: "Sweater", ext: ".jpg" }
+        ],
+        "Colori": [
+            { word: "Nero", original: "Black", ext: ".png" }, { word: "Blu scuro", original: "Dark blue", ext: ".png" }, { word: "Verde", original: "Green", ext: ".png" },
+            { word: "Azzurro", original: "Light blue", ext: ".png" }, { word: "Arancione", original: "Orange", ext: ".png" }, { word: "Rosa", original: "Pink", ext: ".png" },
+            { word: "Viola", original: "Purple", ext: ".png" }, { word: "Rosso", original: "Red", ext: ".png" }, { word: "Bianco", original: "White", ext: ".png" },
+            { word: "Giallo", original: "Yellow", ext: ".png" }
+        ],
+        "Famiglia": [
+            { word: "Fratello", original: "Brother", ext: ".png" }, { word: "Padre", original: "Father", ext: ".png" }, { word: "Nonno", original: "Grand-father", ext: ".png" },
+            { word: "Nonna", original: "Grand-mother", ext: ".png" }, { word: "Madre", original: "Mother", ext: ".png" }, { word: "Sorella", original: "Sister", ext: ".png" }
+        ],
+        "Cibo": [
+            { word: "Mela", original: "Apple", ext: ".jpg" }, { word: "Banana", original: "Banana", ext: ".png" }, { word: "Pane", original: "Bread", ext: ".jpg" },
+            { word: "Carota", original: "Carrot", ext: ".png" }, { word: "Ciliegia", original: "Cherry", ext: ".png" }, { word: "Cioccolato", original: "Chocolate", ext: ".png" },
+            { word: "Uva", original: "Grapes", ext: ".jpg" }, { word: "Gelato", original: "Ice cream", ext: ".png" }, { word: "Limone", original: "Lemon", ext: ".jpg" },
+            { word: "Pasto", original: "Meal", ext: ".jpg" }, { word: "Olio", original: "Oil", ext: ".jpg" }, { word: "Cipolla", original: "Onion", ext: ".png" },
+            { word: "Arancia", original: "Orange", ext: ".png" }, { word: "Succo d'arancia", original: "Orange juice", ext: ".png" }, { word: "Pera", original: "Pear", ext: ".png" },
+            { word: "Pepe", original: "Pepper", ext: ".png" }, { word: "Patata", original: "Potato", ext: ".jpg" }, { word: "Riso", original: "Rice", ext: ".jpg" },
+            { word: "Insalata", original: "Salad", ext: ".png" }, { word: "Sale", original: "Salt", ext: ".png" }, { word: "Fragola", original: "Strawberry", ext: ".jpg" },
+            { word: "Pomodoro", original: "Tomato", ext: ".jpg" }, { word: "Acqua", original: "Water", ext: ".jpg" }
+        ],
+        "Casa": [
+            { word: "Bagno", original: "Bathroom", ext: ".png" }, { word: "Camera da letto", original: "Bedroom", ext: ".png" }, { word: "Sala da pranzo", original: "Dining room", ext: ".png" },
+            { word: "Porta", original: "Door", ext: ".jpg" }, { word: "Cucina", original: "Kitchen", ext: ".png" }, { word: "Soggiorno", original: "Living room", ext: ".png" },
+            { word: "Ufficio", original: "Office", ext: ".png" }, { word: "Toilette", original: "Toilet", ext: ".png" }, { word: "Finestra", original: "Window", ext: ".jpg" }
+        ],
+        "Numeri": [
+            { word: "Uno", original: "One", ext: ".png" }, { word: "Due", original: "Two", ext: ".png" }, { word: "Tre", original: "Three", ext: ".png" },
+            { word: "Quattro", original: "Four", ext: ".png" }, { word: "Cinque", original: "Five", ext: ".png" }, { word: "Sei", original: "Six", ext: ".png" },
+            { word: "Sette", original: "Seven", ext: ".png" }, { word: "Otto", original: "Eight", ext: ".png" }, { word: "Nove", original: "Nine", ext: ".png" },
+            { word: "Dieci", original: "Ten", ext: ".png" }, { word: "Undici", original: "Eleven", ext: ".png" }, { word: "Dodici", original: "Twelve", ext: ".png" },
+            { word: "Tredici", original: "Thirteen", ext: ".png" }, { word: "Quattordici", original: "Fourteen", ext: ".png" }, { word: "Quindici", original: "Fifteen", ext: ".png" },
+            { word: "Sedici", original: "Sixteen", ext: ".png" }, { word: "Diciassette", original: "Seventeen", ext: ".png" }, { word: "Diciotto", original: "Eighteen", ext: ".png" },
+            { word: "Diciannove", original: "Nineteen", ext: ".png" }, { word: "Venti", original: "Twenty", ext: ".png" }, { word: "Trenta", original: "Thirty", ext: ".png" },
+            { word: "Quaranta", original: "Fourty", ext: ".png" }, { word: "Cinquanta", original: "Fifty", ext: ".png" }, { word: "Sessanta", original: "Sixty", ext: ".png" },
+            { word: "Settanta", original: "Seventy", ext: ".png" }, { word: "Ottanta", original: "Eighty", ext: ".png" }, { word: "Novanta", original: "Ninety", ext: ".png" },
+            { word: "Primo", original: "First", ext: ".png" }, { word: "Secondo", original: "Second", ext: ".png" }, { word: "Terzo", original: "Third", ext: ".png" },
+            { word: "Quarto", original: "Fourth", ext: ".png" }, { word: "Quinto", original: "Fifth", ext: ".png" }, { word: "Sesto", original: "Sixth", ext: ".png" },
+            { word: "Settimo", original: "Seventh", ext: ".png" }, { word: "Ottavo", original: "Eighth", ext: ".png" }, { word: "Nono", original: "Nineth", ext: ".png" }
+        ],
+        "Oggetti": [
+            { word: "Palla", original: "Ball", ext: ".jpg" }, { word: "Libro", original: "Book", ext: ".jpg" }, { word: "Ciotola", original: "Bowl", ext: ".jpg" },
+            { word: "Sedia", original: "Chair", ext: ".jpg" }, { word: "Forchetta", original: "Fork", ext: ".jpg" }, { word: "Bicchiere", original: "Glass", ext: ".jpg" },
+            { word: "Chiave", original: "Key", ext: ".jpg" }, { word: "Matita", original: "Pencil", ext: ".jpg" }, { word: "Piatto", original: "Plate", ext: ".png" },
+            { word: "Cucchiaio", original: "Spoon", ext: ".jpg" }, { word: "Spada", original: "Sword", ext: ".jpg" }, { word: "Tavolo", original: "Table", ext: ".png" },
+            { word: "Orologio", original: "Watch", ext: ".jpg" }
+        ],
+        "Opposti": [
+            { word: "Cattivo", original: "Bad", ext: ".png" }, { word: "Economico", original: "Cheap", ext: ".png" }, { word: "Freddo", original: "Cold", ext: ".png" },
+            { word: "Giorno", original: "Day", ext: ".png" }, { word: "Vuoto", original: "Empty", ext: ".png" }, { word: "Costoso", original: "Expensive", ext: ".png" },
+            { word: "Veloce", original: "Fast", ext: ".jpg" }, { word: "Grasso", original: "Fat", ext: ".png" }, { word: "Pieno", original: "Full", ext: ".png" },
+            { word: "Futuro", original: "Future", ext: ".png" }, { word: "Scendere", original: "Go down", ext: ".png" }, { word: "Salire", original: "Go up", ext: ".jpg" },
+            { word: "Buono", original: "Good", ext: ".png" }, { word: "Felice", original: "Happy", ext: ".png" }, { word: "Pesante", original: "Heavy", ext: ".png" },
+            { word: "Alto", original: "High", ext: ".png" }, { word: "Caldo", original: "Hot", ext: ".png" }, { word: "Sinistra", original: "Left", ext: ".png" },
+            { word: "Leggero", original: "Light", ext: ".jpg" }, { word: "Basso", original: "Low", ext: ".png" }, { word: "Successivo", original: "Next", ext: ".png" },
+            { word: "Notte", original: "Night", ext: ".png" }, { word: "Vecchio", original: "Old", ext: ".png" }, { word: "Passato", original: "Past", ext: ".png" },
+            { word: "Precedente", original: "Previous", ext: ".png" }, { word: "Destra", original: "Right", ext: ".png" }, { word: "Triste", original: "Sad", ext: ".png" },
+            { word: "Lento", original: "Slow", ext: ".jpg" }, { word: "Piccolo", original: "Small", ext: ".png" }, { word: "Inizio", original: "Start", ext: ".png" },
+            { word: "Fine", original: "Stop", ext: ".png" }, { word: "Alto (Statura)", original: "Tall", ext: ".png" }, { word: "Magro", original: "Thin", ext: ".png" },
+            { word: "Spegnere", original: "Turn off", ext: ".png" }, { word: "Accendere", original: "Turn on", ext: ".png" }, { word: "Sbagliato", original: "Wrong", ext: ".png" },
+            { word: "Giovane", original: "Young", ext: ".png" }
+        ],
+        "Luoghi": [
+            { word: "Banca", original: "Bank", ext: ".png" }, { word: "Brasile", original: "Brazil", ext: ".jpg" }, { word: "Chiesa", original: "Church", ext: ".png" },
+            { word: "Cinema", original: "Cinema", ext: ".jpg" }, { word: "Casa", original: "Home", ext: ".jpg" }, { word: "Ospedale", original: "Hospital", ext: ".png" },
+            { word: "Ristorante", original: "Restaurant", ext: ".jpg" }, { word: "Scuola", original: "School", ext: ".jpg" }, { word: "Stazione", original: "Station", ext: ".jpg" },
+            { word: "Supermercato", original: "Supermarket", ext: ".jpg" }, { word: "Piscina", original: "Swimming pool", ext: ".png" }
+        ],
+        "Altro": [
+            { word: "Borsa", original: "Bag", ext: ".jpg" }, { word: "Dietro", original: "Behind", ext: ".jpg" }, { word: "Tra", original: "Between", ext: ".jpg" },
+            { word: "Compleanno", original: "Birthday", ext: ".jpg" }, { word: "Scatola", original: "Box", ext: ".png" }, { word: "Auto", original: "Car", ext: ".jpg" },
+            { word: "Nuvoloso", original: "Cloudy", ext: ".png" }, { word: "Computer", original: "Computer", ext: ".png" }, { word: "Calcio", original: "Football", ext: ".png" },
+            { word: "Chitarra", original: "Guitar", ext: ".png" }, { word: "Dentro", original: "In", ext: ".jpg" }, { word: "Davanti a", original: "In front of", ext: ".jpg" },
+            { word: "Cellulare", original: "Mobile phone", ext: ".png" }, { word: "Accanto a", original: "Next to", ext: ".jpg" }, { word: "Su", original: "On", ext: ".jpg" },
+            { word: "Piove", original: "Raining", ext: ".png" }, { word: "Nevica", original: "Snowing", ext: ".png" }, { word: "Soleggiato", original: "Sunny", ext: ".png" },
+            { word: "Treno", original: "Train", ext: ".jpg" }, { word: "Sotto", original: "Under", ext: ".jpg" }, { word: "Con", original: "With", ext: ".png" },
+            { word: "Senza", original: "Without", ext: ".png" }
+        ],
+        "Tempo": [
+            { word: "Lunedì", original: "Monday", ext: ".png" }, { word: "Martedì", original: "Tuesday", ext: ".png" }, { word: "Mercoledì", original: "Wednesday", ext: ".png" },
+            { word: "Giovedì", original: "Thursday", ext: ".png" }, { word: "Venerdì", original: "Friday", ext: ".png" }, { word: "Sabato", original: "Saturday", ext: ".png" },
+            { word: "Gennaio", original: "January", ext: ".png" }, { word: "Febbraio", original: "February", ext: ".png" }, { word: "Marzo", original: "March", ext: ".png" },
+            { word: "Aprile", original: "April", ext: ".png" }, { word: "Maggio", original: "May", ext: ".png" }, { word: "Giugno", original: "June", ext: ".png" },
+            { word: "Luglio", original: "July", ext: ".png" }, { word: "Agosto", original: "August", ext: ".png" }, { word: "Settembre", original: "September", ext: ".png" },
+            { word: "Ottobre", original: "October", ext: ".png" }, { word: "Novembre", original: "November", ext: ".png" }, { word: "Dicembre", original: "December", ext: ".png" },
+            { word: "Oggi", original: "Today", ext: ".png" }, { word: "Domani", original: "Tomorrow", ext: ".png" }, { word: "Ieri", original: "Yesterday", ext: ".png" }
+        ],
+        "Verbi": [
+            { word: "Avere", original: "Have", ext: ".png" }, { word: "Fare", original: "Do", ext: ".png" }, { word: "Sapere", original: "Know", ext: ".png" },
+            { word: "Andare", original: "Go", ext: ".png" }, { word: "Dire", original: "Say", ext: ".png" }, { word: "Pensare", original: "Think", ext: ".png" },
+            { word: "Vedere", original: "See", ext: ".png" }, { word: "Volere", original: "Want", ext: ".png" }, { word: "Prendere", original: "Take", ext: ".png" },
+            { word: "Guardare", original: "Look", ext: ".png" }, { word: "Usare", original: "Use", ext: ".png" }, { word: "Venire", original: "Come", ext: ".png" },
+            { word: "Bisognare", original: "Need", ext: ".png" }, { word: "Significare", original: "Mean", ext: ".png" }, { word: "Dare", original: "Give", ext: ".png" },
+            { word: "Iniziare", original: "Start", ext: ".png" }, { word: "Provare", original: "Try", ext: ".png" }, { word: "Lavorare", original: "Work", ext: ".png" },
+            { word: "Raccontare", original: "Tell", ext: ".png" }, { word: "Svegliarsi", original: "Wake up", ext: ".png" }, { word: "Dormire", original: "Sleep", ext: ".png" },
+            { word: "Comprare", original: "Buy", ext: ".png" }, { word: "Scrivere", original: "Write", ext: ".png" }, { word: "Giocare", original: "Play", ext: ".png" },
+            { word: "Bere", original: "Drink", ext: ".png" }, { word: "Mangiare", original: "Eat", ext: ".png" }, { word: "Parlare", original: "Speak", ext: ".png" },
+            { word: "Mettere", original: "Put", ext: ".png" }, { word: "Aggiungere", original: "Add", ext: ".png" }, { word: "Viaggiare", original: "Travel", ext: ".png" },
+            { word: "Arrivare", original: "Arrive", ext: ".png" }, { word: "Entrare", original: "Enter", ext: ".png" }, { word: "Camminare", original: "Walk", ext: ".png" },
+            { word: "Correre", original: "Run", ext: ".png" }, { word: "Alzarsi", original: "Stand up", ext: ".png" }, { word: "Sedersi", original: "Sit down", ext: ".png" },
+            { word: "Udire", original: "Hear", ext: ".png" }, { word: "Ascoltare", original: "Listen", ext: ".png" }, { word: "Aiutare", original: "Help", ext: ".png" },
+            { word: "Cercare", original: "Search", ext: ".png" }, { word: "Trovare", original: "Find", ext: ".png" }, { word: "Leggere", original: "Read", ext: ".png" },
+            { word: "Potere", original: "Can", ext: ".png" }, { word: "Capire", original: "Understand", ext: ".png" }, { word: "Aprire", original: "Open", ext: ".png" },
+            { word: "Chiudere", original: "Close", ext: ".png" }, { word: "Ricordare", original: "Remember", ext: ".png" }, { word: "Aspettare", original: "Wait", ext: ".png" }
+        ]
+    };
+
+    const categoryMapping = {
+        "Animali": "Animals", "Corpo": "Body", "Vestiti": "Clothes", "Colori": "Colours", "Famiglia": "Family",
+        "Cibo": "Food", "Casa": "House", "Numeri": "Numbers", "Oggetti": "Objects", "Opposti": "Opposites",
+        "Luoghi": "Places", "Altro": "Others", "Tempo": "Time", "Verbi": "Verbs"
+    };
+
+    function getThemeProgress() {
+        try {
+            return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function setThemeLevel(theme, level) {
+        const progress = getThemeProgress();
+        progress[theme] = level;
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+    }
+
+    const App = {
+        state: {
+            currentScreen: 'HOME',
+            score: 0.0,
+            themeScore: 0.0,
+            currentCategory: null,
+            currentLevel: 1,
+            currentWord: null, 
+            categoryWordsQueue: [],
+            currentQuestionWords: [],
+            isAwaitingAnswer: false,
+            currentQuestionNumber: 0,
+            totalQuestions: 0,
+            maxPossibleScore: 0
+        },
+        
+        dom: {
+            scoreDisplay: document.getElementById('score'),
+            progressBarFill: document.getElementById('progress-scale-fill'),
+            homeScreen: document.getElementById('home-screen'),
+            level1Screen: document.getElementById('level1-screen'),
+            level2Screen: document.getElementById('level2-screen'),
+            level3Screen: document.getElementById('level3-screen'),
+            levelCompleteScreen: document.getElementById('level-complete-screen'),
+            categoryList: document.getElementById('category-list'),
+            backToHomeBtn: document.getElementById('back-to-home-btn'),
+            mainTitle: document.getElementById('main-title'),
+            
+            currentThemeTitle1: document.getElementById('current-theme-title-1'),
+            ttsBtn1: document.getElementById('tts-btn-1'),
+            ttsIcon1: document.getElementById('tts-icon-1'),
+            imageOptionsContainer: document.getElementById('image-options-container'),
+            feedbackText1: document.getElementById('feedback-text-1'),
+            nextLevel1Btn: document.getElementById('next-level1-btn'),
+            currentQuestionCount1: document.getElementById('current-question-count-1'),
+            totalQuestionCount1: document.getElementById('total-question-count-1'),
+            l1Instruction: document.getElementById('l1-instruction'),
+
+            currentThemeTitle2: document.getElementById('current-theme-title-2'),
+            targetImage2: document.getElementById('target-image-2'),
+            audioOptionsContainer: document.getElementById('audio-options-container'),
+            feedbackText2: document.getElementById('feedback-text-2'),
+            nextLevel2Btn: document.getElementById('next-level2-btn'),
+            currentQuestionCount2: document.getElementById('current-question-count-2'),
+            totalQuestionCount2: document.getElementById('total-question-count-2'),
+            level2PlayBtns: [],
+            level2SelectBtns: [],
+            l2Instruction: document.getElementById('l2-instruction'),
+            
+            currentThemeTitle3: document.getElementById('current-theme-title-3'),
+            targetImage3: document.getElementById('target-image-3'),
+            micBtn3: document.getElementById('mic-btn-3'),
+            ttsHintBtn3: document.getElementById('tts-hint-btn-3'),
+            micIcon3: document.getElementById('mic-icon-3'),
+            recognitionStatus: document.getElementById('recognition-status'),
+            feedbackText3: document.getElementById('feedback-text-3'),
+            nextLevel3Btn: document.getElementById('next-level3-btn'),
+            currentQuestionCount3: document.getElementById('current-question-count-3'),
+            totalQuestionCount3: document.getElementById('total-question-count-3'),
+            l3Instruction: document.getElementById('l3-instruction'),
+            
+            completedTheme: document.getElementById('completed-theme'),
+            themeScoreDisplay: document.getElementById('theme-score'),
+            nextLevelMessage: document.getElementById('next-level-message'),
+        },
+
+        init() {
+            const totalUniqueWords = Object.values(WORD_DATA_DETAILS).reduce((acc, cat) => acc + cat.length, 0);
+            this.state.maxPossibleScore = totalUniqueWords * 3;
+
+            this.dom.level2PlayBtns = Array.from(this.dom.audioOptionsContainer.querySelectorAll('.level2-play-btn'));
+            this.dom.level2SelectBtns = Array.from(this.dom.audioOptionsContainer.querySelectorAll('.level2-select-btn'));
+            
+            this.dom.backToHomeBtn.addEventListener('click', () => this.showHomeScreen());
+            this.dom.ttsBtn1.addEventListener('click', () => this.speakWord(this.state.currentWord.word));
+            this.dom.nextLevel1Btn.addEventListener('click', () => this.loadNextLevel1Question());
+            this.dom.nextLevel2Btn.addEventListener('click', () => this.loadNextLevel2Question());
+            
+            this.dom.micBtn3.addEventListener('click', () => this.startSpeechRecognition());
+            this.dom.ttsHintBtn3.addEventListener('click', () => this.speakWord(this.state.currentWord.word));
+            this.dom.nextLevel3Btn.addEventListener('click', () => this.loadNextLevel3Question());
+            document.getElementById('skip-level3-btn').addEventListener('click', () => this.skipCurrentQuestion());
+
+            if (recognition) {
+                recognition.onresult = this.handleRecognitionResult.bind(this);
+                recognition.onend = this.handleRecognitionEnd.bind(this);
+                recognition.onerror = this.handleRecognitionError.bind(this);
+            }
+
+            this.showHomeScreen();
+        },
+
+        updateScreen() {
+            const screens = [this.dom.homeScreen, this.dom.level1Screen, this.dom.level2Screen, this.dom.level3Screen, this.dom.levelCompleteScreen];
+            screens.forEach(s => s.classList.add('hidden'));
+            this.dom.backToHomeBtn.classList.remove('hidden');
+            
+            if (this.state.currentScreen === 'HOME') {
+                this.dom.mainTitle.classList.remove('hidden');
+            } else {
+                this.dom.mainTitle.classList.add('hidden');
+            }
+
+            switch (this.state.currentScreen) {
+                case 'HOME': this.dom.homeScreen.classList.remove('hidden'); this.dom.backToHomeBtn.classList.add('hidden'); break;
+                case 'LEVEL1': this.dom.level1Screen.classList.remove('hidden'); break;
+                case 'LEVEL2': this.dom.level2Screen.classList.remove('hidden'); break;
+                case 'LEVEL3': this.dom.level3Screen.classList.remove('hidden'); break;
+                case 'LEVEL_COMPLETE': this.dom.levelCompleteScreen.classList.remove('hidden'); break;
+            }
+            this.updateGlobalScore();
+        },
+
+        updateGlobalScore() {
+            this.dom.scoreDisplay.textContent = this.state.score.toFixed(1);
+            if (this.state.maxPossibleScore > 0) {
+                const percentage = (this.state.score / this.state.maxPossibleScore) * 100;
+                this.dom.progressBarFill.style.width = `${Math.min(percentage, 100)}%`;
+            }
+        },
+
+        showHomeScreen() {
+            this.state.currentScreen = 'HOME';
+            this.updateScreen();
+            
+            let categories = Object.keys(WORD_DATA_DETAILS).sort();
+            categories = categories.filter(c => c !== "Altro");
+            categories.push("Altro");
+
+            this.dom.categoryList.innerHTML = '';
+            const progress = getThemeProgress();
+
+            categories.forEach(category => {
+                const currentLevel = progress[category] || 1;
+                const wordCount = WORD_DATA_DETAILS[category].length;
+                let buttonClass = 'game-button';
+                if (currentLevel >= 4) buttonClass += ' mastered-final';
+                else if (currentLevel >= 3) buttonClass += ' mastered';
+                else if (currentLevel >= 2) buttonClass += ' unlocked';
+                else buttonClass += ' default';
+                
+                const btn = document.createElement('button');
+                btn.textContent = `${category} (${wordCount})`; 
+                btn.className = buttonClass;
+                btn.onclick = () => this.startLevel(category, currentLevel);
+                this.dom.categoryList.appendChild(btn);
+            });
+        },
+        
+        startLevel(category, currentLevel) {
+            this.state.currentCategory = category;
+            this.state.themeScore = 0.0;
+            this.state.currentLevel = currentLevel;
+
+            if (currentLevel >= 4) {
+                this.showComplete(3);
+                return;
+            }
+
+            const initialWords = WORD_DATA_DETAILS[category];
+            this.state.categoryWordsQueue = [...initialWords, ...initialWords].sort(() => Math.random() - 0.5); 
+            this.state.totalQuestions = this.state.categoryWordsQueue.length;
+            this.state.currentQuestionNumber = 0;
+
+            if (currentLevel === 1) {
+                this.state.currentScreen = 'LEVEL1';
+                this.dom.currentThemeTitle1.textContent = `${category} - Livello 1`;
+                this.loadNextLevel1Question();
+            } else if (currentLevel === 2) {
+                this.state.currentScreen = 'LEVEL2';
+                this.dom.currentThemeTitle2.textContent = `${category} - Livello 2`;
+                this.loadNextLevel2Question();
+            } else {
+                this.state.currentScreen = 'LEVEL3';
+                this.dom.currentThemeTitle3.textContent = `${category} - Livello 3`;
+                this.loadNextLevel3Question();
+            }
+            this.updateScreen();
+        },
+
+        scrollToTitle() {
+            const titleId = `current-theme-title-${this.state.currentLevel}`;
+            const el = document.getElementById(titleId);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+
+        loadNextLevel1Question() {
+            if (this.state.categoryWordsQueue.length === 0) { this.finishLevel1(); return; }
+            this.state.currentQuestionNumber++;
+            this.dom.currentQuestionCount1.textContent = this.state.currentQuestionNumber;
+            this.dom.totalQuestionCount1.textContent = this.state.totalQuestions;
+            this.dom.l1Instruction.classList.toggle('hidden', this.state.currentQuestionNumber > 1);
+            this.state.isAwaitingAnswer = true;
+            this.dom.nextLevel1Btn.classList.add('hidden');
+            this.dom.feedbackText1.textContent = '';
+            this.state.currentWord = this.state.categoryWordsQueue.pop();
+            const distractors = this.getRandomWordObjects(WORD_DATA_DETAILS[this.state.currentCategory], this.state.currentWord, 2);
+            this.state.currentQuestionWords = [this.state.currentWord, ...distractors].sort(() => Math.random() - 0.5);
+            this.renderLevel1ImageOptions();
+            this.speakWord(this.state.currentWord.word);
+            this.scrollToTitle();
+        },
+
+        renderLevel1ImageOptions() {
+            this.dom.imageOptionsContainer.innerHTML = '';
+            this.state.currentQuestionWords.forEach(wordObject => {
+                const img = document.createElement('img');
+                img.className = 'image-option';
+                img.src = this.getWordImageUrl(this.state.currentCategory, wordObject);
+                img.onclick = () => {
+                    this.speakWord(wordObject.word);
+                    if (this.state.isAwaitingAnswer) this.checkLevel1Answer(wordObject.word, img);
+                };
+                this.dom.imageOptionsContainer.appendChild(img);
+            });
+        },
+
+        checkLevel1Answer(selectedWord, selectedImage) {
+            if (selectedWord === this.state.currentWord.word) {
+                this.state.isAwaitingAnswer = false;
+                selectedImage.classList.add('correct');
+                this.state.score += 0.5; this.state.themeScore += 0.5;
+                this.updateGlobalScore();
+                this.dom.feedbackText1.textContent = `Esatto: ${this.state.currentWord.word} !`;
+                this.dom.feedbackText1.className = 'text-lg font-bold text-green-600';
+                this.dom.nextLevel1Btn.classList.remove('hidden');
+            } else {
+                selectedImage.classList.add('incorrect');
+                this.dom.feedbackText1.textContent = `Sbagliato. Riprova!`;
+                this.dom.feedbackText1.className = 'text-lg font-bold text-red-600';
+            }
+        },
+
+        loadNextLevel2Question() {
+            if (this.state.categoryWordsQueue.length === 0) { this.finishLevel2(); return; }
+            this.state.currentQuestionNumber++;
+            this.dom.currentQuestionCount2.textContent = this.state.currentQuestionNumber;
+            this.dom.totalQuestionCount2.textContent = this.state.totalQuestions;
+            this.dom.l2Instruction.classList.toggle('hidden', this.state.currentQuestionNumber > 1);
+            this.state.isAwaitingAnswer = true;
+            this.dom.nextLevel2Btn.classList.add('hidden');
+            this.dom.feedbackText2.textContent = '';
+            this.state.currentWord = this.state.categoryWordsQueue.pop();
+            const distractors = this.getRandomWordObjects(WORD_DATA_DETAILS[this.state.currentCategory], this.state.currentWord, 2);
+            this.state.currentQuestionWords = [this.state.currentWord, ...distractors].sort(() => Math.random() - 0.5);
+            
+            this.dom.targetImage2.src = this.getWordImageUrl(this.state.currentCategory, this.state.currentWord);
+            this.dom.level2SelectBtns.forEach((btn, idx) => {
+                btn.classList.remove('correct', 'incorrect');
+                const word = this.state.currentQuestionWords[idx].word;
+                this.dom.level2PlayBtns[idx].onclick = () => this.speakWord(word);
+                btn.onclick = () => this.checkLevel2Answer(word, btn);
+            });
+            this.scrollToTitle();
+        },
+
+        checkLevel2Answer(selectedWord, selectedButton) {
+            if (!this.state.isAwaitingAnswer) { this.speakWord(selectedWord); return; }
+            this.speakWord(selectedWord);
+            if (selectedWord === this.state.currentWord.word) {
+                this.state.isAwaitingAnswer = false;
+                selectedButton.classList.add('correct');
+                this.state.score += 0.5; this.state.themeScore += 0.5;
+                this.updateGlobalScore();
+                this.dom.feedbackText2.textContent = `Esatto: ${this.state.currentWord.word} !`;
+                this.dom.feedbackText2.className = 'text-lg font-bold text-green-600';
+                if (this.state.categoryWordsQueue.length > 0) this.dom.nextLevel2Btn.classList.remove('hidden');
+                else setTimeout(() => this.finishLevel2(), 1500);
+            } else {
+                selectedButton.classList.add('incorrect');
+                this.dom.feedbackText2.textContent = `Sbagliato. Riprova!`;
+                this.dom.feedbackText2.className = 'text-lg font-bold text-red-600';
+            }
+        },
+
+        startLevel3(category) {
+            if (!recognition) { alert("Riconoscimento vocale non supportato."); this.showHomeScreen(); return; }
+            this.state.currentScreen = 'LEVEL3';
+            this.dom.currentThemeTitle3.textContent = `${category} - Livello 3`;
+            this.loadNextLevel3Question();
+        },
+        
+        loadNextLevel3Question() {
+            if (this.state.categoryWordsQueue.length === 0) { this.finishLevel3(); return; }
+            this.state.currentQuestionNumber++;
+            this.dom.currentQuestionCount3.textContent = this.state.currentQuestionNumber;
+            this.dom.totalQuestionCount3.textContent = this.state.totalQuestions;
+            this.dom.l3Instruction.classList.toggle('hidden', this.state.currentQuestionNumber > 1);
+            this.state.isAwaitingAnswer = true;
+            this.dom.nextLevel3Btn.classList.add('hidden');
+            document.getElementById('skip-level3-btn').classList.remove('hidden');
+            this.dom.feedbackText3.textContent = '';
+            this.state.currentWord = this.state.categoryWordsQueue.pop();
+            this.dom.targetImage3.src = this.getWordImageUrl(this.state.currentCategory, this.state.currentWord);
+            this.dom.recognitionStatus.textContent = 'Pronuncia la parola che vedi.';
+            this.scrollToTitle();
+        },
+        
+        startSpeechRecognition() {
+            try {
+                recognition.start();
+                this.dom.micBtn3.classList.add('recording');
+                this.dom.recognitionStatus.textContent = 'Ascolto in corso...';
+            } catch (e) { console.error(e); }
+        },
+
+        handleRecognitionResult(event) {
+            let recognized = event.results[0][0].transcript.trim().toLowerCase();
+            const target = this.state.currentWord.word.toLowerCase();
+            this.dom.micBtn3.classList.remove('recording');
+            if (recognized === target || recognized.replace(/[- ]/g, '') === target.replace(/[- ]/g, '')) {
+                this.state.isAwaitingAnswer = false;
+                this.state.score += 0.5; this.state.themeScore += 0.5;
+                this.updateGlobalScore();
+                this.dom.feedbackText3.textContent = `Bravo! Hai detto "${this.state.currentWord.word}"`;
+                this.dom.feedbackText3.className = 'text-lg font-bold text-green-600';
+                this.dom.nextLevel3Btn.classList.remove('hidden');
+                document.getElementById('skip-level3-btn').classList.add('hidden');
+            } else {
+                this.dom.feedbackText3.textContent = `Riconosciuto: "${recognized}". Riprova!`;
+                this.dom.feedbackText3.className = 'text-lg font-bold text-red-600';
+            }
+        },
+
+        handleRecognitionEnd() { this.dom.micBtn3.classList.remove('recording'); },
+        handleRecognitionError() { this.dom.recognitionStatus.textContent = 'Errore microfono. Riprova.'; },
+
+        skipCurrentQuestion() {
+            this.state.isAwaitingAnswer = false;
+            const current = this.state.currentLevel;
+            if (current === 1) this.loadNextLevel1Question();
+            else if (current === 2) this.loadNextLevel2Question();
+            else this.loadNextLevel3Question();
+        },
+
+        finishLevel1() { setThemeLevel(this.state.currentCategory, 2); this.showComplete(1); },
+        finishLevel2() { setThemeLevel(this.state.currentCategory, 3); this.showComplete(2); },
+        finishLevel3() { setThemeLevel(this.state.currentCategory, 4); this.showComplete(3); },
+
+        showComplete(lvl) {
+            this.state.currentScreen = 'LEVEL_COMPLETE';
+            this.dom.completedTheme.textContent = lvl === 3 ? `${this.state.currentCategory}` : `${this.state.currentCategory} - Livello ${lvl}`;
+            this.dom.themeScoreDisplay.textContent = this.state.themeScore.toFixed(1);
+            this.dom.nextLevelMessage.textContent = lvl === 3 ? "Congratulazioni! Hai completato questo tema!" : `Livello ${lvl+1} sbloccato!`;
+            this.updateScreen();
+        },
+
+        getWordImageUrl(cat, wordObj) {
+            const originalCat = categoryMapping[cat] || cat;
+            return `${BASE_IMAGE_URL}${originalCat}_${wordObj.original}${wordObj.ext}`.replace(/ /g, '%20');
+        },
+
+        getRandomWordObjects(list, exclude, count) {
+            const filtered = list.filter(w => w.word !== exclude.word);
+            return filtered.sort(() => 0.5 - Math.random()).slice(0, count);
+        },
+
+        speakWord(text) {
+            if ('speechSynthesis' in window) {
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'it-IT'; // Cambiato in Italiano
+                window.speechSynthesis.speak(u);
+            }
+        }
+    };
+
+    window.onload = () => App.init();
+</script>
+
+</body>
+</html>
