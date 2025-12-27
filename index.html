@@ -238,7 +238,7 @@
         
         #skip-level3-btn { color: white; }
 
-        /* --- BARRA DI PROGRESSO --- */
+        /* --- BARRA DI PROGRESSO (nascosta) --- */
         .progress-scale-container {
             flex-grow: 1;
             margin-left: 0.75rem;
@@ -266,13 +266,15 @@
         <h1 id="main-title" class="text-3xl font-extrabold text-gray-800">Impariamo l'italiano</h1>
 
         <div class="mt-3 flex justify-between items-center px-2">
-            <div class="flex items-center flex-1">
+            <!-- Punteggio e barra di progresso ora nascosti -->
+            <div class="hidden items-center flex-1" id="score-container">
                 <span class="text-base sm:text-lg font-bold text-gray-700 whitespace-nowrap">Punteggio: <span id="score">0.0</span></span>
                 <div class="progress-scale-container" id="score-scale-box">
                     <div id="progress-scale-fill"></div>
                 </div>
             </div>
-            <button id="back-to-home-btn" class="text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-semibold hidden ml-2">← Temi</button>
+            <!-- ml-auto assicura che il pulsante resti a destra anche se il punteggio è nascosto -->
+            <button id="back-to-home-btn" class="text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-semibold hidden ml-auto">← Temi</button>
         </div>
     </header>
 
@@ -282,6 +284,16 @@
         <!-- 1. HOME SCREEN (SELEZIONE CATEGORIA) -->
         <div id="home-screen" class="p-4">
             <div id="category-list" class="category-grid"></div>
+            
+            <!-- SEZIONE RESET -->
+            <div class="mt-12 pt-6 border-t border-gray-100">
+                <p class="text-[10px] text-gray-400 mb-3 uppercase font-black text-center tracking-widest">Configurazione Rapida Livelli</p>
+                <div class="flex justify-center gap-2">
+                    <button onclick="App.resetAllThemes(1)" class="text-[10px] bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg font-bold text-gray-500 transition-colors uppercase">Livello 1</button>
+                    <button onclick="App.resetAllThemes(2)" class="text-[10px] bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg font-bold text-gray-500 transition-colors uppercase">Livello 2</button>
+                    <button onclick="App.resetAllThemes(3)" class="text-[10px] bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg font-bold text-gray-500 transition-colors uppercase">Livello 3</button>
+                </div>
+            </div>
         </div>
 
         <!-- 2. LIVELLO 1 (Audio -> Immagine) -->
@@ -405,14 +417,13 @@
     if (SpeechRecognition) {
         recognition = new SpeechRecognition();
         recognition.continuous = false;
-        recognition.lang = 'it-IT'; // Cambiato in Italiano
+        recognition.lang = 'it-IT'; 
         recognition.interimResults = false;
         recognition.maxAlternatives = 1; 
     }
 
     const BASE_IMAGE_URL = "https://regine-lambrecht.github.io/ingles_Mikael/images/";
     
-    // Traduzione di tutti i dettagli delle parole e categorie
     const WORD_DATA_DETAILS = {
         "Animali": [
             { word: "Uccello", original: "Bird", ext: ".png" }, { word: "Gatto", original: "Cat", ext: ".png" }, { word: "Pollo", original: "Chicken", ext: ".png" },
@@ -449,7 +460,7 @@
             { word: "Mela", original: "Apple", ext: ".jpg" }, { word: "Banana", original: "Banana", ext: ".png" }, { word: "Pane", original: "Bread", ext: ".jpg" },
             { word: "Carota", original: "Carrot", ext: ".png" }, { word: "Ciliegia", original: "Cherry", ext: ".png" }, { word: "Cioccolato", original: "Chocolate", ext: ".png" },
             { word: "Uva", original: "Grapes", ext: ".jpg" }, { word: "Gelato", original: "Ice cream", ext: ".png" }, { word: "Limone", original: "Lemon", ext: ".jpg" },
-            { word: "Pasto", original: "Meal", ext: ".jpg" }, { word: "Olio", original: "Oil", ext: ".jpg" }, { word: "Cipolla", original: "Onion", ext: ".png" },
+            { word: "Carne", original: "Meal", ext: ".jpg" }, { word: "Olio", original: "Oil", ext: ".jpg" }, { word: "Cipolla", original: "Onion", ext: ".png" },
             { word: "Arancia", original: "Orange", ext: ".png" }, { word: "Succo d'arancia", original: "Orange juice", ext: ".png" }, { word: "Pera", original: "Pear", ext: ".png" },
             { word: "Pepe", original: "Pepper", ext: ".png" }, { word: "Patata", original: "Potato", ext: ".jpg" }, { word: "Riso", original: "Rice", ext: ".jpg" },
             { word: "Insalata", original: "Salad", ext: ".png" }, { word: "Sale", original: "Salt", ext: ".png" }, { word: "Fragola", original: "Strawberry", ext: ".jpg" },
@@ -463,7 +474,9 @@
         "Numeri": [
             { word: "Uno", original: "One", ext: ".png" }, { word: "Due", original: "Two", ext: ".png" }, { word: "Tre", original: "Three", ext: ".png" },
             { word: "Quattro", original: "Four", ext: ".png" }, { word: "Cinque", original: "Five", ext: ".png" }, { word: "Sei", original: "Six", ext: ".png" },
-            { word: "Sette", original: "Seven", ext: ".png" }, { word: "Otto", original: "Eight", ext: ".png" }, { word: "Nove", original: "Nine", ext: ".png" },
+            { word: "Sette", original: "Seven", ext: ".png" }, 
+            { word: "Otto", original: "8", ext: ".jpg", url: "https://icon-library.com/images/icon-8/icon-8-3.jpg" }, // Asset fisso
+            { word: "Nove", original: "Nine", ext: ".png" },
             { word: "Dieci", original: "Ten", ext: ".png" }, { word: "Undici", original: "Eleven", ext: ".png" }, { word: "Dodici", original: "Twelve", ext: ".png" },
             { word: "Tredici", original: "Thirteen", ext: ".png" }, { word: "Quattordici", original: "Fourteen", ext: ".png" }, { word: "Quindici", original: "Fifteen", ext: ".png" },
             { word: "Sedici", original: "Sixteen", ext: ".png" }, { word: "Diciassette", original: "Seventeen", ext: ".png" }, { word: "Diciotto", original: "Eighteen", ext: ".png" },
@@ -478,7 +491,7 @@
             { word: "Palla", original: "Ball", ext: ".jpg" }, { word: "Libro", original: "Book", ext: ".jpg" }, { word: "Ciotola", original: "Bowl", ext: ".jpg" },
             { word: "Sedia", original: "Chair", ext: ".jpg" }, { word: "Forchetta", original: "Fork", ext: ".jpg" }, { word: "Bicchiere", original: "Glass", ext: ".jpg" },
             { word: "Chiave", original: "Key", ext: ".jpg" }, { word: "Matita", original: "Pencil", ext: ".jpg" }, { word: "Piatto", original: "Plate", ext: ".png" },
-            { word: "Cucchiaio", original: "Spoon", ext: ".jpg" }, { word: "Spada", original: "Sword", ext: ".jpg" }, { word: "Tavolo", original: "Table", ext: ".png" },
+            { word: "Cucchiaio", original: "Spoon", ext: ".jpg" }, { word: "Coltello", original: "Sword", ext: ".jpg" }, { word: "Tavolo", original: "Table", ext: ".png" },
             { word: "Orologio", original: "Watch", ext: ".jpg" }
         ],
         "Opposti": [
@@ -490,9 +503,9 @@
             { word: "Alto", original: "High", ext: ".png" }, { word: "Caldo", original: "Hot", ext: ".png" }, { word: "Sinistra", original: "Left", ext: ".png" },
             { word: "Leggero", original: "Light", ext: ".jpg" }, { word: "Basso", original: "Low", ext: ".png" }, { word: "Successivo", original: "Next", ext: ".png" },
             { word: "Notte", original: "Night", ext: ".png" }, { word: "Vecchio", original: "Old", ext: ".png" }, { word: "Passato", original: "Past", ext: ".png" },
-            { word: "Precedente", original: "Previous", ext: ".png" }, { word: "Destra", original: "Right", ext: ".png" }, { word: "Triste", original: "Sad", ext: ".png" },
-            { word: "Lento", original: "Slow", ext: ".jpg" }, { word: "Piccolo", original: "Small", ext: ".png" }, { word: "Inizio", original: "Start", ext: ".png" },
-            { word: "Fine", original: "Stop", ext: ".png" }, { word: "Alto (Statura)", original: "Tall", ext: ".png" }, { word: "Magro", original: "Thin", ext: ".png" },
+            { word: "Precedente", original: "Previous", ext: ".png" }, { word: "Destra", original: "Right", ext: ".png" }, { word: "Esatto", original: "Right", ext: ".png" }, { word: "Triste", original: "Sad", ext: ".png" },
+            { word: "Lento", original: "Slow", ext: ".jpg" }, { word: "Piccolo", original: "Small", ext: ".png" }, { word: "Cominciare", original: "Start", ext: ".png" },
+            { word: "Finire", original: "Stop", ext: ".png" }, { word: "Alto (Statura)", original: "Tall", ext: ".png" }, { word: "Magro", original: "Thin", ext: ".png" },
             { word: "Spegnere", original: "Turn off", ext: ".png" }, { word: "Accendere", original: "Turn on", ext: ".png" }, { word: "Sbagliato", original: "Wrong", ext: ".png" },
             { word: "Giovane", original: "Young", ext: ".png" }
         ],
@@ -508,7 +521,7 @@
             { word: "Nuvoloso", original: "Cloudy", ext: ".png" }, { word: "Computer", original: "Computer", ext: ".png" }, { word: "Calcio", original: "Football", ext: ".png" },
             { word: "Chitarra", original: "Guitar", ext: ".png" }, { word: "Dentro", original: "In", ext: ".jpg" }, { word: "Davanti a", original: "In front of", ext: ".jpg" },
             { word: "Cellulare", original: "Mobile phone", ext: ".png" }, { word: "Accanto a", original: "Next to", ext: ".jpg" }, { word: "Su", original: "On", ext: ".jpg" },
-            { word: "Piove", original: "Raining", ext: ".png" }, { word: "Nevica", original: "Snowing", ext: ".png" }, { word: "Soleggiato", original: "Sunny", ext: ".png" },
+            { word: "Pioggia", original: "Raining", ext: ".png" }, { word: "Neve", original: "Snowing", ext: ".png" }, { word: "Soleggiato", original: "Sunny", ext: ".png" },
             { word: "Treno", original: "Train", ext: ".jpg" }, { word: "Sotto", original: "Under", ext: ".jpg" }, { word: "Con", original: "With", ext: ".png" },
             { word: "Senza", original: "Without", ext: ".png" }
         ],
@@ -527,7 +540,7 @@
             { word: "Vedere", original: "See", ext: ".png" }, { word: "Volere", original: "Want", ext: ".png" }, { word: "Prendere", original: "Take", ext: ".png" },
             { word: "Guardare", original: "Look", ext: ".png" }, { word: "Usare", original: "Use", ext: ".png" }, { word: "Venire", original: "Come", ext: ".png" },
             { word: "Bisognare", original: "Need", ext: ".png" }, { word: "Significare", original: "Mean", ext: ".png" }, { word: "Dare", original: "Give", ext: ".png" },
-            { word: "Iniziare", original: "Start", ext: ".png" }, { word: "Provare", original: "Try", ext: ".png" }, { word: "Lavorare", original: "Work", ext: ".png" },
+            { word: "Cominciare", original: "Start", ext: ".png" }, { word: "Provare", original: "Try", ext: ".png" }, { word: "Lavorare", original: "Work", ext: ".png" },
             { word: "Raccontare", original: "Tell", ext: ".png" }, { word: "Svegliarsi", original: "Wake up", ext: ".png" }, { word: "Dormire", original: "Sleep", ext: ".png" },
             { word: "Comprare", original: "Buy", ext: ".png" }, { word: "Scrivere", original: "Write", ext: ".png" }, { word: "Giocare", original: "Play", ext: ".png" },
             { word: "Bere", original: "Drink", ext: ".png" }, { word: "Mangiare", original: "Eat", ext: ".png" }, { word: "Parlare", original: "Speak", ext: ".png" },
@@ -537,7 +550,8 @@
             { word: "Udire", original: "Hear", ext: ".png" }, { word: "Ascoltare", original: "Listen", ext: ".png" }, { word: "Aiutare", original: "Help", ext: ".png" },
             { word: "Cercare", original: "Search", ext: ".png" }, { word: "Trovare", original: "Find", ext: ".png" }, { word: "Leggere", original: "Read", ext: ".png" },
             { word: "Potere", original: "Can", ext: ".png" }, { word: "Capire", original: "Understand", ext: ".png" }, { word: "Aprire", original: "Open", ext: ".png" },
-            { word: "Chiudere", original: "Close", ext: ".png" }, { word: "Ricordare", original: "Remember", ext: ".png" }, { word: "Aspettare", original: "Wait", ext: ".png" }
+            { word: "Chiudere", original: "Close", ext: ".png" }, { word: "Ricordare", original: "Remember", ext: ".png" }, { word: "Aspettare", original: "Wait", ext: ".png" },
+            { word: "Finire", original: "Stop", ext: ".png" }
         ]
     };
 
@@ -650,6 +664,14 @@
                 recognition.onerror = this.handleRecognitionError.bind(this);
             }
 
+            this.showHomeScreen();
+        },
+
+        resetAllThemes(targetLevel) {
+            const categories = Object.keys(WORD_DATA_DETAILS);
+            categories.forEach(cat => setThemeLevel(cat, targetLevel));
+            this.state.score = 0.0;
+            this.updateGlobalScore();
             this.showHomeScreen();
         },
 
@@ -909,6 +931,7 @@
         },
 
         getWordImageUrl(cat, wordObj) {
+            if (wordObj.url) return wordObj.url; // Supporto per URL esterni diretti
             const originalCat = categoryMapping[cat] || cat;
             return `${BASE_IMAGE_URL}${originalCat}_${wordObj.original}${wordObj.ext}`.replace(/ /g, '%20');
         },
@@ -921,7 +944,7 @@
         speakWord(text) {
             if ('speechSynthesis' in window) {
                 const u = new SpeechSynthesisUtterance(text);
-                u.lang = 'it-IT'; // Cambiato in Italiano
+                u.lang = 'it-IT'; 
                 window.speechSynthesis.speak(u);
             }
         }
